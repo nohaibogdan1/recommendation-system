@@ -1,0 +1,22 @@
+{
+  "name": "@recommendation-system/root",
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "turbo": "latest"
+  },
+  "packageManager": "yarn@1.22.22",
+  "workspaces": [
+    "services/*"
+  ]
+}
