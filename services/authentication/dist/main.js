@@ -1,10 +1,10 @@
 "use strict";
 /**
  *
- * Roles for this application:
- *  - Offers to clients the REST API for all workflows
- *  - limits requests per IP
- *
+ * The purpose of this service:
+ * handles authentication for tenants
+ * has the required tables
+ * offers API keys
  */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -15,26 +15,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-/**
- *
- * registration flow
- * jwt and refresh tokens
- * one user has multiple applications, each one is a tenant
- * table with API keys for applications
- * table with users
- *
- * database with schemas for every tenant
- */
-const core_1 = require("@nestjs/core");
-const app_module_1 = __importDefault(require("./app.module"));
 function bootstrap() {
     return __awaiter(this, void 0, void 0, function* () {
-        const app = yield core_1.NestFactory.create(app_module_1.default);
-        yield app.listen(3000);
     });
 }
-bootstrap();
