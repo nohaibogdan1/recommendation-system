@@ -1,0 +1,12 @@
+{
+    "$schema":  "https://turborepo.com/schema.json",
+    "tasks": {
+        "generate-types-from-proto": {
+            "inputs": ["src/**/proto/**/*.proto"],
+            "cache": false
+        }
+    },
+    "remoteCache": {
+        "enabled": false
+    }
+}

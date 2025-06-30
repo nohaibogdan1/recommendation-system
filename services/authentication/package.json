@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "generate-types-from-proto": "tsproto -p ."
   },
   "author": "",
   "license": "ISC",
@@ -29,6 +30,7 @@
     "@types/node": "^24.0.7",
     "@types/passport": "^1.0.17",
     "eslint": "^9.30.0",
+    "nestjs-proto-gen-ts": "^1.0.21",
     "prettier": "^3.6.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
