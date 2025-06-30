@@ -10,23 +10,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const common_1 = require("@nestjs/common");
-const path_1 = __importDefault(require("path"));
-const microservices_1 = require("@nestjs/microservices");
 const app_controller_1 = __importDefault(require("./app.controller"));
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [
-            microservices_1.ClientsModule.register([{
-                    name: "HERO_PACKAGE",
-                    transport: microservices_1.Transport.GRPC,
-                    options: {
-                        package: "hero",
-                        protoPath: path_1.default.join(__dirname, "./hero/hero.proto"),
-                    }
-                }])
-        ],
         controllers: [app_controller_1.default]
     })
 ], AppModule);
