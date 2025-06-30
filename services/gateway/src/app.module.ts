@@ -1,20 +1,28 @@
 import { Module } from "@nestjs/common";
 import path from "path";
 import { ClientsModule, Transport } from "@nestjs/microservices";
+import { glob } from "glob";
+
 import AppController from "./app.controller";
 
 @Module({
-    imports: [
-        ClientsModule.register([{
-            name: "HERO_PACKAGE",
+  imports: [
+    ClientsModule.registerAsync([
+      {
+        name: "HERO_PACKAGE",
+        useFactory: async () => {
+          const protoFiles = await glob(path.join(__dirname, "./**/*.proto"));
+          return {
             transport: Transport.GRPC,
             options: {
-                package: "hero",
-                protoPath: path.join(__dirname, "./hero/hero.proto"),
-                
-            }
-        }])
-    ],
-    controllers: [AppController]
+              package: ["hero"],
+              protoPath: protoFiles,
+            },
+          };
+        },
+      },
+    ]),
+  ],
+  controllers: [AppController],
 })
 export default class AppModule {}
