@@ -22,9 +22,11 @@
     "@nestjs/typeorm": "^11.0.0",
     "express": "^5.1.0",
     "glob": "^11.0.3",
+    "joi": "^17.13.3",
     "nestjs": "^0.0.1",
     "passport-jwt": "^4.0.1",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "typeorm": "^0.3.25"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
