@@ -12,6 +12,7 @@ import { ConfigModule } from "@nestjs/config";
         POSTGRES_PASSWORD: joi.string().required(),
         POSTGRES_PORT: joi.number().required(),
         POSTGRES_DB: joi.string().required(),
+        DB_SYNC: joi.boolean()
       }),
     }),
   ],

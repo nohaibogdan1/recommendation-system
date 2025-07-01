@@ -25,7 +25,21 @@ services:
       - ./data/pgadmin:/data/pgadmin
     networks:
       - authentication_network
+
+  fakesmtp:
+    image: mailhog/mailhog:v1.0.1
+    container_name: fakesmtp
+    volumes:
+      - ./data/fakesmtp:/data/mailhog
+    networks:
+      - email_network
+    ports:
+      - "1025:1025"
+      - "8025:8025"
     
 networks:
   authentication_network:
+    driver: bridge
+
+  email_network:
     driver: bridge
