@@ -36,10 +36,23 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    container_name: rabbitmq
+    volumes: 
+      - ./data/rabbitmq:/data/rabbitmq
+    networks:
+      - rabbitmq_network
+    ports:
+      - "5672:5672"
     
 networks:
   authentication_network:
     driver: bridge
 
   email_network:
+    driver: bridge
+
+  rabbitmq_network:
     driver: bridge
