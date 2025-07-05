@@ -46,6 +46,50 @@ services:
       - rabbitmq_network
     ports:
       - "5672:5672"
+      - "15672:15672"
+
+  elasticsearch:
+    image: elasticsearch:9.0.2
+    container_name: elasticsearch
+    volumes:
+      - ./data/elasticsearch:/data/elasticsearch
+    networks:
+      - elk_network
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      ELASTIC_PASSWORD: 12345
+
+  kibana:
+    image: kibana:9.0.2
+    container_name: kibana
+    volumes: 
+      - ./data/kibana:/data/kibana
+    networks:
+      - elk_network
+    ports: 
+      - "5601:5601"
+
+
+  logstash:
+    stdin_open: true
+    tty: true
+    image: logstash:9.0.2
+    container_name: logstash
+    volumes:
+      - ./data/logstash/others:/data/logstash
+      - ./data/logstash/pipeline:/usr/share/logstash/pipeline
+      # - ./data/logstash/settings/logstash.yml:/usr/share/logstash/config/logstash.yml
+    networks:
+      - elk_network
+      - rabbitmq_network
+    ports:
+      - "9600:9600"
+      - "65434:65434"
+
+    
+
     
 networks:
   authentication_network:
@@ -55,4 +99,7 @@ networks:
     driver: bridge
 
   rabbitmq_network:
+    driver: bridge
+
+  elk_network:
     driver: bridge

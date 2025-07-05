@@ -1,0 +1,4 @@
+log.format: json
+path.config: /usr/share/logstash/pipeline
+api.http.host: 0.0.0.0
+monitoring.elasticsearch.hosts: http://elasticsearch:9200
