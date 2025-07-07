@@ -1,11 +1,21 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { ClientProxy } from "@nestjs/microservices";
+import { ClientRMQ } from "@nestjs/microservices";
 
 @Injectable()
 export default class AuthenticationService {
-  constructor(@Inject("EMAIL_SERVICE") private readonly emailService: ClientProxy) {}
+  constructor(
+    @Inject("EMAIL_SERVICE") private readonly emailService: ClientRMQ
+  ) {}
 
-  sendEmail() {
-    this.emailService.emit("af", "feeee");
+  async sendEmail() {
+    this.emailService.emit("ddsf", {
+      userId: "1",
+      tenantId: "tenant 1",
+      payload: {
+        a: "2",
+        b: "4",
+        c: "5"
+      }
+    });
   }
 }
