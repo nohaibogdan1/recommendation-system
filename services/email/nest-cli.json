@@ -1,0 +1,6 @@
+{
+    "compilerOptions": {
+        "assets": ["**/*.handlebars"],
+        "watchAssets": true
+    }
+}

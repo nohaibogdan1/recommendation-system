@@ -555,11 +555,13 @@ __metadata:
     "@types/amqp-connection-manager": "npm:^3.4.5"
     "@types/amqplib": "npm:^0.10.7"
     "@types/express": "npm:^5.0.3"
+    "@types/handlebars": "npm:^4.1.0"
     "@types/node": "npm:^24.0.8"
     "@types/nodemailer": "npm:^6.4.17"
     amqp-connection-manager: "npm:^4.1.14"
     amqplib: "npm:^0.10.8"
     eslint: "npm:^9.30.0"
+    handlebars: "npm:^4.7.8"
     joi: "npm:^17.13.3"
     nodemailer: "npm:^7.0.4"
     prettier: "npm:^3.6.2"
@@ -741,6 +743,15 @@ __metadata:
     "@types/express-serve-static-core": "npm:^5.0.0"
     "@types/serve-static": "npm:*"
   checksum: 10c0/f0fbc8daa7f40070b103cf4d020ff1dd08503477d866d1134b87c0390bba71d5d7949cb8b4e719a81ccba89294d8e1573414e6dcbb5bb1d097a7b820928ebdef
+  languageName: node
+  linkType: hard
+
+"@types/handlebars@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "@types/handlebars@npm:4.1.0"
+  dependencies:
+    handlebars: "npm:*"
+  checksum: 10c0/50e85efb4a9306c8b2278dd1570714e9021f201ef317a259ce2d63406057e6575f3066b862bed3d192828d1cc32b80d3a0d2e18d0cd9cda98ec5f1f69038e342
   languageName: node
   linkType: hard
 
@@ -1848,7 +1859,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"handlebars@npm:^4.7.6":
+"handlebars@npm:*, handlebars@npm:^4.7.6, handlebars@npm:^4.7.8":
   version: 4.7.8
   resolution: "handlebars@npm:4.7.8"
   dependencies:
