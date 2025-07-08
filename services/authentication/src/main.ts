@@ -11,6 +11,7 @@ import { MicroserviceOptions, Transport } from "@nestjs/microservices";
 import AppModule from "./app.module";
 import path from "path";
 import { glob } from "glob";
+import { ConfigService } from "@nestjs/config";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -24,9 +25,10 @@ async function bootstrap() {
     },
   });
 
-  await app.startAllMicroservices();
+  const configService = app.get(ConfigService);
 
-  await app.listen(3001);
+  await app.startAllMicroservices();
+  await app.listen(configService.get("PORT")!);
 }
 
 bootstrap();

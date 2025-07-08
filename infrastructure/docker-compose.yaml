@@ -1,0 +1,105 @@
+services:
+  postgres_authentication:
+    image: postgres:15
+    container_name: postgres_authentication
+    ports: 
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_pass
+      POSTGRES_DB: auth_db
+    volumes: 
+      - ./data/postgres_authentication:/data/postgres
+    networks:
+      - authentication_network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    ports: 
+      - "8080:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pg_admin@d.com
+      PGADMIN_DEFAULT_PASSWORD: pg_admin_pass
+    volumes:
+      - ./data/pgadmin:/data/pgadmin
+    networks:
+      - authentication_network
+
+  fakesmtp:
+    image: mailhog/mailhog:v1.0.1
+    container_name: fakesmtp
+    volumes:
+      - ./data/fakesmtp:/data/mailhog
+    networks:
+      - email_network
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    container_name: rabbitmq
+    volumes: 
+      - ./data/rabbitmq:/data/rabbitmq
+    networks:
+      - rabbitmq_network
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  elasticsearch:
+    image: elasticsearch:9.0.2
+    container_name: elasticsearch
+    volumes:
+      - ./data/elasticsearch:/data/elasticsearch
+    networks:
+      - elk_network
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      ELASTIC_PASSWORD: 12345
+
+  kibana:
+    image: kibana:9.0.2
+    container_name: kibana
+    volumes: 
+      - ./data/kibana:/data/kibana
+    networks:
+      - elk_network
+    ports: 
+      - "5601:5601"
+
+
+  logstash:
+    stdin_open: true
+    tty: true
+    image: logstash:9.0.2
+    container_name: logstash
+    volumes:
+      - ./data/logstash/others:/data/logstash
+      - ./data/logstash/pipeline:/usr/share/logstash/pipeline
+      # - ./data/logstash/settings/logstash.yml:/usr/share/logstash/config/logstash.yml
+    networks:
+      - elk_network
+      - rabbitmq_network
+    ports:
+      - "9600:9600"
+      - "65434:65434"
+
+    
+
+    
+networks:
+  authentication_network:
+    driver: bridge
+
+  email_network:
+    driver: bridge
+
+  rabbitmq_network:
+    driver: bridge
+
+  elk_network:
+    driver: bridge
