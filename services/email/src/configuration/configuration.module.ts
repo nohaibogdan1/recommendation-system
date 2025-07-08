@@ -8,7 +8,11 @@ import { Module } from "@nestjs/common";
       isGlobal: true,
       validationSchema: joi.object({
         HTTP_PORT: joi.number().required(),
-        FAKE_SMTP_PORT: joi.number().required(),
+        SMTP_HOST: joi.string().required(),
+        SMTP_PORT: joi.number().required(),
+        SMTP_USER: joi.string().required(),
+        SMTP_PASSWORD: joi.string().required(),
+        FROM: joi.string().required(),
       }),
     }),
   ],
