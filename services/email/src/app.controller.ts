@@ -1,7 +1,16 @@
 import { Controller, Get, Post, Inject } from "@nestjs/common";
-import { EventPattern, Transport, ClientProxy } from "@nestjs/microservices";
+import {
+  EventPattern,
+  Transport,
+  Payload,
+  Ctx,
+  RmqContext,
+} from "@nestjs/microservices";
 import TemplateService from "./template/template.service";
 import CommunicationService from "./communication/communication.service";
+import EventPatterns from "./eventPatterns";
+import { SendEmailPayload } from "./types";
+import emailTypes from "./emailTypes";
 
 @Controller("email")
 export default class AppController {
@@ -10,23 +19,41 @@ export default class AppController {
     private readonly communicationService: CommunicationService
   ) {}
 
-  @EventPattern("email.a", Transport.RMQ)
-  xx(data: any, c: any) {
-    console.log("\n\nuee\n\n", data);
-    return "rfse";
-  }
+  @EventPattern(EventPatterns.SEND_EMAIL, Transport.RMQ)
+  async sendEmail(@Payload() data: SendEmailPayload, @Ctx() ctx: RmqContext) {
+    const channel = ctx.getChannelRef();
+    const message = ctx.getMessage();
 
-  @EventPattern("email.b", Transport.RMQ)
-  xx2(data: any, c: any) {
-    console.log("\n\nuedde\n\n", data);
-    return "rfse";
+    try {
+      const emailType = data.payload.type;
+
+      let subject = "";
+
+      if (emailType === emailTypes.ACCOUNT_CONFIRMATION) {
+        subject = "Email confirmation";
+      }
+
+      const html = await this.templateService.createHtml(data.payload);
+
+      await this.communicationService.send({
+        to: "dawd@df.com",
+        subject,
+        text: "",
+        html,
+      });
+
+      channel.ack(message);
+    } catch (e) {
+      channel.nack(message);
+      console.error(e);
+    }
   }
 
   @Post()
   async xx_HTTP() {
     console.log("\n\nhttp wee\n\n");
 
-    const html = await this.templateService.createTemplate();
+    const html = await this.templateService.createHtml({} as any);
     this.communicationService.send({
       to: "dawd@df.com",
       subject: "Hello",

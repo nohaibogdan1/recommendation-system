@@ -15,6 +15,7 @@ async function bootstrap() {
       exchange: "my_exchange",
       queue: "email",
       wildcards: true,
+      noAck: false
     },
   })
 
