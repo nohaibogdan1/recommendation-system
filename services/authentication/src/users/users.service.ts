@@ -1,11 +1,13 @@
-import { Repository } from "typeorm";
 import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import User from "./user.entity";
+import UserRepository from "./user.repository";
 
 @Injectable()
 export default class UsersService {
   constructor(
-    @InjectRepository(User) private readonly userRepository: Repository<User>
+    private readonly userRepository: UserRepository
   ) {}
+
+  async createUser(data: { email: string; password: string }) {
+    return this.userRepository.create(data);
+  }
 }

@@ -18,10 +18,6 @@ export default class User {
   @Column({ default: false })
   emailVerified: boolean;
 
-  @Column()
-  @OneToOne(
-    () => EmailVerificationToken,
-    (emailVerificationToken) => emailVerificationToken.user
-  )
-  emailVerificationToken: EmailVerificationToken;
+  @OneToOne(() => EmailVerificationToken, emailVerificationToken => emailVerificationToken.user)
+  emailVerificationToken: EmailVerificationToken
 }

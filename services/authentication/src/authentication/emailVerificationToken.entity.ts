@@ -12,7 +12,7 @@ export default class EmailVerificationToken {
   @Column({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   createdAt: Date;
 
+  @OneToOne(() => User, user => user.emailVerificationToken)
   @JoinColumn()
-  @OneToOne(() => User, (user) => user.emailVerificationToken)
   user: User;
 }

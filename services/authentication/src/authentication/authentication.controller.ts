@@ -1,14 +1,13 @@
-import { Controller, Post } from "@nestjs/common";
+import { Controller, Post, Body } from "@nestjs/common";
 import AuthenticationService from "./authentication.service";
+import RegisterDto from "./dtos/register.dto";
 
 @Controller("authentication")
 export default class AuthenticationController {
+  constructor(private readonly authenticationService: AuthenticationService) {}
 
-    constructor(private readonly authenticationService: AuthenticationService){}
-
-    @Post("register")
-    async register() {
-        console.log("\n\ngsg\n\n")
-        this.authenticationService.sendEmail();
-    } 
+  @Post("register")
+  async register(@Body() payload: RegisterDto ) {
+    this.authenticationService.register(payload);
+  }
 }
