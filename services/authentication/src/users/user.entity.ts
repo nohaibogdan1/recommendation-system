@@ -12,6 +12,12 @@ export default class User {
   @Column()
   password: string;
 
+  @Column()
+  firstName: string;
+
+  @Column()
+  lastName: string;
+
   @Column({ nullable: true })
   refreshToken: string;
 

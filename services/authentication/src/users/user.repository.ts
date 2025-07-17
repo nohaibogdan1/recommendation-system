@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { QueryRunner, Repository } from "typeorm";
+import { DeepPartial, QueryRunner, Repository } from "typeorm";
 import { AsyncLocalStorage } from "async_hooks";
 import User from "./user.entity";
 
@@ -14,16 +14,31 @@ export default class UserRepository {
     @InjectRepository(User) private readonly userRepository: Repository<User>
   ) {}
 
-  async create(data: { email: string; password: string }) {
-    const repository =
+  private getRepository() {
+    return (
       this.connectionStore
         .getStore()
-        ?.queryRunner.manager.getRepository(User) || this.userRepository;
+        ?.queryRunner.manager.getRepository(User) || this.userRepository
+    );
+  }
+
+  async create(data: DeepPartial<User>) {
+    const repository = this.getRepository();
 
     const userEntity = repository.create({
       ...data,
     });
-    const user = await repository.save(userEntity);
-    return user;
+    return repository.save(userEntity);
+  }
+
+  async getUserByEmail(email: string) {
+    return this.getRepository().findOne({
+      relations: { emailVerificationToken: true },
+      where: { email },
+    });
+  }
+
+  async updateUser(user: User) {
+    return this.getRepository().save(user);
   }
 }

@@ -16,14 +16,23 @@ export default class EvtRepository {
     private readonly evtRepository: Repository<EmailVerificationToken>
   ) {}
 
-  async create(data: { token: string, user: User }) {
-    const repository =
+  private getRepository() {
+    return (
       this.connectionStore
         .getStore()
         ?.queryRunner.manager.getRepository(EmailVerificationToken) ||
-      this.evtRepository;
+      this.evtRepository
+    );
+  }
+  async create(data: { token: string; user: User }) {
+    const repository = this.getRepository();
     const token = repository.create(data);
     await repository.save(token);
     return token;
+  }
+
+  async remove(evt: EmailVerificationToken) {
+    const repository = this.getRepository();
+    return repository.remove([evt]);
   }
 }

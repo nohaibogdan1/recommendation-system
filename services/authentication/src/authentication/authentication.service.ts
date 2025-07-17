@@ -15,6 +15,9 @@ import EvtRepository from "./evt.repository";
 import { SendEmailPayload } from "../types";
 import emailTypes from "../emailTypes";
 import EventPatterns from "../eventPatterns";
+import EmailConfirmationDto from "./dtos/emailConfirmation.dto";
+import { hasExpired } from "./utils";
+import { EMAIL_CONFIRMATION_TOKEN_EXPIRES_IN } from "./consts";
 
 const randomBytes = promisify(crypto.randomBytes);
 
@@ -30,11 +33,16 @@ export default class AuthenticationService {
     }>
   ) {}
 
-  async register(payload: RegisterDto) {
+  private getQueryRunner() {
     const queryRunner = this.connectionStore.getStore()!.queryRunner;
     if (!queryRunner) {
       throw new Error("queryRunner is not defined");
     }
+    return queryRunner;
+  }
+
+  async register(payload: RegisterDto) {
+    const queryRunner = this.getQueryRunner();
 
     const hashedPassword = await bcrypt.hash(payload.password, 10);
     const token = (await randomBytes(16)).toString("hex");
@@ -47,6 +55,8 @@ export default class AuthenticationService {
       user = await this.usersService.createUser({
         email: payload.email,
         password: hashedPassword,
+        firstName: payload.firstName,
+        lastName: payload.lastName,
       });
 
       await this.evtRepository.create({ token: hashedToken, user });
@@ -58,6 +68,8 @@ export default class AuthenticationService {
       throw new InternalServerErrorException();
     }
 
+    queryRunner.release();
+
     const sendEmailPayload: SendEmailPayload = {
       userId: user.id,
       tenantId: "tenant x",
@@ -66,10 +78,48 @@ export default class AuthenticationService {
         email: user.email,
         link: `https://wwww.blaa.com/email-confirmation?token=${token}`,
         firstName: "John",
-        lastName: "Cena"
+        lastName: "Cena",
       },
     };
 
     this.emailService.emit(EventPatterns.SEND_EMAIL, sendEmailPayload);
+  }
+
+  async confirmEmail(payload: EmailConfirmationDto) {
+    const user = await this.usersService.getUserByEmail(payload.email);
+
+    if (!user || !user.emailVerificationToken) {
+      //return invalid user or token
+
+      return;
+    }
+
+    const evt = user.emailVerificationToken;
+
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(payload.token)
+      .digest("hex");
+
+    if (evt.token !== hashedToken || hasExpired(evt.createdAt, EMAIL_CONFIRMATION_TOKEN_EXPIRES_IN) ) {
+      // token not valid
+      return;
+    }
+
+    user.emailVerified = true;
+
+    const queryRunner = this.getQueryRunner();
+
+    await queryRunner.startTransaction();
+
+    try {
+      await this.usersService.confirmEmail(user);
+      await this.evtRepository.remove(user.emailVerificationToken);
+
+      await queryRunner.commitTransaction();
+    } catch (e) {
+      await queryRunner.rollbackTransaction();
+    }
+    queryRunner.release();
   }
 }

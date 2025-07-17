@@ -1,0 +1,1 @@
+export const EMAIL_CONFIRMATION_TOKEN_EXPIRES_IN = 5 * 60;
