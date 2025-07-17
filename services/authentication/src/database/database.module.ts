@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigService } from "@nestjs/config";
-
+import path from "node:path";
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
@@ -13,8 +13,9 @@ import { ConfigService } from "@nestjs/config";
         username: configService.get("POSTGRES_USER"),
         password: configService.get("POSTGRES_PASSWORD"),
         port: configService.get("POSTGRES_PORT"),
-        entities: [__dirname + "../**/*.entity.{ts,js}"],
+        entities: [path.join(__dirname, "..", "**/*.entity.{ts,js}")],
         synchronize: configService.get("DB_SYNC") || false,
+        logging: true
       }),
     }),
   ],

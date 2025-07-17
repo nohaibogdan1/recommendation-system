@@ -8,8 +8,12 @@ export default class RmqSetupService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    await this.emailService.connect();
-    await this.emailService.createChannel();
-    await this.emailService.close();
+    try {
+      await this.emailService.connect();
+      await this.emailService.createChannel();
+      await this.emailService.close();
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
