@@ -38,6 +38,10 @@ export default class UserRepository {
     });
   }
 
+  async getUserById(id: string) {
+    return this.getRepository().findOneBy({ id });
+  }
+
   async updateUser(user: User) {
     return this.getRepository().save(user);
   }

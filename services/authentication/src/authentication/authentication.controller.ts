@@ -4,6 +4,7 @@ import RegisterDto from "./dtos/register.dto";
 import EmailConfirmationDto from "./dtos/emailConfirmation.dto";
 import LoginDto from "./login.dto";
 import RedoEmailConfirmationDto from "./dtos/redoEmailConfirmation.dto";
+import GenerateJwtDto from "./dtos/generateJwt.dto";
 
 @Controller("authentication")
 export default class AuthenticationController {
@@ -11,17 +12,17 @@ export default class AuthenticationController {
 
   @Post("register")
   async register(@Body() payload: RegisterDto ) {
-    this.authenticationService.register(payload);
+    return this.authenticationService.register(payload);
   }
 
   @Post("email-confirmation")
   async emailConfirmation(@Body() payload: EmailConfirmationDto ) {
-    this.authenticationService.confirmEmail(payload);
+    return this.authenticationService.confirmEmail(payload);
   }
 
   @Post("resend-email-verification-token")
   async resentEmailVerificationToken(@Body() payload: RedoEmailConfirmationDto) {
-    this.authenticationService.redoEmailVerification(payload);
+    return this.authenticationService.redoEmailVerification(payload);
   }
 
   @Post("login")
@@ -30,8 +31,8 @@ export default class AuthenticationController {
   }
 
   @Post("generate-jwt") 
-  async generateJwt() {
-
+  async generateJwt(@Body() payload: GenerateJwtDto) {
+    return this.authenticationService.generateJwt(payload);
   }
 
   @Post("validate-jwt")

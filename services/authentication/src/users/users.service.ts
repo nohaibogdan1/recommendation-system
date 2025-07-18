@@ -21,4 +21,8 @@ export default class UsersService {
     return this.userRepository.updateUser(user);
   }
 
+  async getUserById(id: string) {
+    return this.userRepository.getUserById(id);
+  }
+
 }

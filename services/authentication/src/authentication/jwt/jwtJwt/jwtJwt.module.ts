@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtModule, JwtService } from "@nestjs/jwt";
-import JsonWebTokenService from "./jsonWebToken.service";
+import JwtJwtService from "./jwtJwt.service";
 
 @Module({
   imports: [
@@ -17,10 +17,10 @@ import JsonWebTokenService from "./jsonWebToken.service";
   ],
   providers: [
     {
-      provide: JsonWebTokenService,
+      provide: JwtJwtService,
       useExisting: JwtService,
     },
   ],
-  exports: [JsonWebTokenService],
+  exports: [JwtJwtService],
 })
-export default class JsonWebTokenModule {}
+export default class JwtJwtModule {}

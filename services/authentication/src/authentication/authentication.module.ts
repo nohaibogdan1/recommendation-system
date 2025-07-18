@@ -9,12 +9,13 @@ import RmqSetupService from "./RmqSetupService";
 import UsersModule from "../users/users.module";
 import ConnectionStoreModule from "../database/ConnectionStoreModule";
 import EvtRepository from "./evt.repository";
-import RefreshTokenModule from "./refreshToken/refreshToken.module";
-import JsonWebTokenModule from "./jsonWebToken/jsonWebToken.module";
+import RefreshToken from "./refreshToken.entity";
+import JwtJwtModule from "./jwt/jwtJwt/jwtJwt.module";
+import JwtRefreshTokenModule from "./jwt/jwtRefreshToken/jwtRefreshToken.module";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([EmailVerificationToken]),
+    TypeOrmModule.forFeature([EmailVerificationToken, RefreshToken]),
     ClientsModule.register([
       {
         name: "EMAIL_SERVICE",
@@ -29,8 +30,8 @@ import JsonWebTokenModule from "./jsonWebToken/jsonWebToken.module";
     ]),
     UsersModule,
     ConnectionStoreModule,
-    RefreshTokenModule,
-    JsonWebTokenModule
+    JwtJwtModule,
+    JwtRefreshTokenModule
   ],
   providers: [AuthenticationService, RmqSetupService, EvtRepository],
   controllers: [AuthenticationController],

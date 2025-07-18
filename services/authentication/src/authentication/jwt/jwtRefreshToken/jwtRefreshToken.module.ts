@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtModule, JwtService } from "@nestjs/jwt";
-import RefreshTokenService from "./refreshToken.service";
+import JwtRefreshTokenService from "./jwtRefreshToken.service";
 
 @Module({
   imports: [
@@ -17,10 +17,10 @@ import RefreshTokenService from "./refreshToken.service";
   ],
   providers: [
     {
-      provide: RefreshTokenService,
+      provide: JwtRefreshTokenService,
       useExisting: JwtService,
     },
   ],
-  exports: [RefreshTokenService],
+  exports: [JwtRefreshTokenService],
 })
-export default class RefreshTokenModule {}
+export default class JwtRefreshTokenModule {}

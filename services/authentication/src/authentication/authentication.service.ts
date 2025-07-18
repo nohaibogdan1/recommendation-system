@@ -6,8 +6,9 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from "@nestjs/common";
-import { QueryRunner } from "typeorm";
+import { QueryRunner, Repository } from "typeorm";
 import { ClientRMQ } from "@nestjs/microservices";
 import RegisterDto from "./dtos/register.dto";
 import UsersService from "../users/users.service";
@@ -20,10 +21,13 @@ import EmailConfirmationDto from "./dtos/emailConfirmation.dto";
 import { hasExpired } from "./utils";
 import { EMAIL_CONFIRMATION_TOKEN_EXPIRES_IN } from "./consts";
 import LoginDto from "./login.dto";
-import RefreshTokenService from "./refreshToken/refreshToken.service";
-import JsonWebTokenService from "./jsonWebToken/jsonWebToken.service";
-import User from "../users/user.entity";
 import RedoEmailConfirmationDto from "./dtos/redoEmailConfirmation.dto";
+import GenerateJwtDto from "./dtos/generateJwt.dto";
+import { JwtPayload, RefreshTokenPayload } from "./types";
+import { InjectRepository } from "@nestjs/typeorm";
+import RefreshToken from "./refreshToken.entity";
+import JwtRefreshTokenService from "./jwt/jwtRefreshToken/jwtRefreshToken.service";
+import JwtJwtService from "./jwt/jwtJwt/jwtJwt.service";
 
 const randomBytes = promisify(crypto.randomBytes);
 
@@ -37,8 +41,10 @@ export default class AuthenticationService {
     private readonly connectionStore: AsyncLocalStorage<{
       queryRunner: QueryRunner;
     }>,
-    private readonly refreshTokenService: RefreshTokenService,
-    private readonly jsonWebTokenService: JsonWebTokenService
+    @InjectRepository(RefreshToken)
+    private readonly refreshTokenRepository: Repository<RefreshToken>,
+    private readonly jwtRefreshTokenService: JwtRefreshTokenService,
+    private readonly jwtJwtService: JwtJwtService
   ) {}
 
   private getQueryRunner() {
@@ -68,7 +74,7 @@ export default class AuthenticationService {
 
     try {
       queryRunner.startTransaction();
-      
+
       await this.evtRepository.remove(user.emailVerificationToken);
       await this.evtRepository.create({
         token: hashedToken,
@@ -192,13 +198,50 @@ export default class AuthenticationService {
       throw new ForbiddenException();
     }
 
-    const refreshToken = await this.refreshTokenService.signAsync({
+    const refreshTokenPayload: RefreshTokenPayload = {
       userId: user.id,
-    });
+    };
+
+    const refreshToken =
+      await this.jwtRefreshTokenService.signAsync(refreshTokenPayload);
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-    user.refreshToken = hashedRefreshToken;
-    await this.usersService.updateUser(user);
+
+    const refreshTokenEntity = this.refreshTokenRepository.create({
+      token: hashedRefreshToken,
+      user,
+    });
+
+    await this.refreshTokenRepository.save(refreshTokenEntity);
 
     return refreshToken;
+  }
+
+  async generateJwt({ refreshToken }: GenerateJwtDto) {
+    let userId;
+    try {
+      const payload: RefreshTokenPayload =
+        await this.jwtRefreshTokenService.verifyAsync(refreshToken);
+      userId = payload.userId;
+    } catch (e) {
+      throw new UnauthorizedException();
+    }
+
+    const user = await this.usersService.getUserById(userId);
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+    const refreshTokenEntity = await this.refreshTokenRepository.findBy({
+      token: hashedRefreshToken,
+    });
+    if (!refreshTokenEntity) {
+      throw new UnauthorizedException();
+    }
+
+    const jwtPayload: JwtPayload = {
+      userId,
+    };
+    return await this.jwtJwtService.signAsync(jwtPayload);
   }
 }
