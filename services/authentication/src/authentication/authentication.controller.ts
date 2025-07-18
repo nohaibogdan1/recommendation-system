@@ -5,6 +5,7 @@ import EmailConfirmationDto from "./dtos/emailConfirmation.dto";
 import LoginDto from "./login.dto";
 import RedoEmailConfirmationDto from "./dtos/redoEmailConfirmation.dto";
 import GenerateJwtDto from "./dtos/generateJwt.dto";
+import ValidateJwtDto from "./dtos/validateJwt.dto";
 
 @Controller("authentication")
 export default class AuthenticationController {
@@ -36,8 +37,7 @@ export default class AuthenticationController {
   }
 
   @Post("validate-jwt")
-  async validateJwt() {
-    // validate jwt
-    // return user based on jwt
+  async validateJwt(@Body() payload: ValidateJwtDto) {
+    return this.authenticationService.validateJwt(payload);
   }
 }

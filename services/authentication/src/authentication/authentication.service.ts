@@ -28,6 +28,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import RefreshToken from "./refreshToken.entity";
 import JwtRefreshTokenService from "./jwt/jwtRefreshToken/jwtRefreshToken.service";
 import JwtJwtService from "./jwt/jwtJwt/jwtJwt.service";
+import ValidateJwtDto from "./dtos/validateJwt.dto";
 
 const randomBytes = promisify(crypto.randomBytes);
 
@@ -230,7 +231,7 @@ export default class AuthenticationService {
     if (!user) {
       throw new UnauthorizedException();
     }
-    
+
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
     const refreshTokenEntity = await this.refreshTokenRepository.findBy({
       token: hashedRefreshToken,
@@ -243,5 +244,19 @@ export default class AuthenticationService {
       userId,
     };
     return await this.jwtJwtService.signAsync(jwtPayload);
+  }
+
+  async validateJwt({ jwt }: ValidateJwtDto) {
+    try {
+      const { userId }: JwtPayload = await this.jwtJwtService.verifyAsync(jwt);
+      const user = await this.usersService.getUserById(userId);
+      if (!user) {
+        throw new UnauthorizedException();
+      }
+      return user;
+    } catch (e) {
+      console.error(e);
+      throw new UnauthorizedException();
+    }
   }
 }
