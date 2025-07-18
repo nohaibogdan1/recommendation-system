@@ -2,6 +2,7 @@ import { promisify } from "node:util";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import {
+  ForbiddenException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -18,6 +19,11 @@ import EventPatterns from "../eventPatterns";
 import EmailConfirmationDto from "./dtos/emailConfirmation.dto";
 import { hasExpired } from "./utils";
 import { EMAIL_CONFIRMATION_TOKEN_EXPIRES_IN } from "./consts";
+import LoginDto from "./login.dto";
+import RefreshTokenService from "./refreshToken/refreshToken.service";
+import JsonWebTokenService from "./jsonWebToken/jsonWebToken.service";
+import User from "../users/user.entity";
+import RedoEmailConfirmationDto from "./dtos/redoEmailConfirmation.dto";
 
 const randomBytes = promisify(crypto.randomBytes);
 
@@ -30,7 +36,9 @@ export default class AuthenticationService {
     @Inject("ConnectionStore")
     private readonly connectionStore: AsyncLocalStorage<{
       queryRunner: QueryRunner;
-    }>
+    }>,
+    private readonly refreshTokenService: RefreshTokenService,
+    private readonly jsonWebTokenService: JsonWebTokenService
   ) {}
 
   private getQueryRunner() {
@@ -41,12 +49,59 @@ export default class AuthenticationService {
     return queryRunner;
   }
 
+  async generateEmailVerificationToken() {
+    const token = (await randomBytes(16)).toString("hex");
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    return { token, hashedToken };
+  }
+
+  async redoEmailVerification(payload: RedoEmailConfirmationDto) {
+    const { email } = payload;
+    const user = await this.usersService.getUserByEmail(email);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const { token, hashedToken } = await this.generateEmailVerificationToken();
+
+    const queryRunner = this.getQueryRunner();
+
+    try {
+      queryRunner.startTransaction();
+      
+      await this.evtRepository.remove(user.emailVerificationToken);
+      await this.evtRepository.create({
+        token: hashedToken,
+        user,
+      });
+
+      queryRunner.commitTransaction();
+    } catch (e) {
+      console.error(e);
+      queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException();
+    }
+
+    const sendEmailPayload: SendEmailPayload = {
+      userId: user.id,
+      tenantId: "tenant x",
+      payload: {
+        type: emailTypes.ACCOUNT_CONFIRMATION,
+        email: user.email,
+        link: `https://wwww.blaa.com/email-confirmation?token=${token}`,
+        firstName: "John",
+        lastName: "Cena",
+      },
+    };
+
+    this.emailService.emit(EventPatterns.SEND_EMAIL, sendEmailPayload);
+  }
+
   async register(payload: RegisterDto) {
     const queryRunner = this.getQueryRunner();
 
+    const { token, hashedToken } = await this.generateEmailVerificationToken();
     const hashedPassword = await bcrypt.hash(payload.password, 10);
-    const token = (await randomBytes(16)).toString("hex");
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
     let user;
 
     try {
@@ -74,7 +129,7 @@ export default class AuthenticationService {
       userId: user.id,
       tenantId: "tenant x",
       payload: {
-        type: emailTypes.ACCOUNT_CONFIRMATION,
+        type: emailTypes.ACCOUNT_REGISTRATION,
         email: user.email,
         link: `https://wwww.blaa.com/email-confirmation?token=${token}`,
         firstName: "John",
@@ -101,7 +156,10 @@ export default class AuthenticationService {
       .update(payload.token)
       .digest("hex");
 
-    if (evt.token !== hashedToken || hasExpired(evt.createdAt, EMAIL_CONFIRMATION_TOKEN_EXPIRES_IN) ) {
+    if (
+      evt.token !== hashedToken ||
+      hasExpired(evt.createdAt, EMAIL_CONFIRMATION_TOKEN_EXPIRES_IN)
+    ) {
       // token not valid
       return;
     }
@@ -113,7 +171,7 @@ export default class AuthenticationService {
     await queryRunner.startTransaction();
 
     try {
-      await this.usersService.confirmEmail(user);
+      await this.usersService.updateUser(user);
       await this.evtRepository.remove(user.emailVerificationToken);
 
       await queryRunner.commitTransaction();
@@ -121,5 +179,26 @@ export default class AuthenticationService {
       await queryRunner.rollbackTransaction();
     }
     queryRunner.release();
+  }
+
+  async login({ email, password }: LoginDto) {
+    const user = await this.usersService.getUserByEmail(email);
+    if (!user || !user.emailVerified) {
+      throw new ForbiddenException();
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw new ForbiddenException();
+    }
+
+    const refreshToken = await this.refreshTokenService.signAsync({
+      userId: user.id,
+    });
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+    user.refreshToken = hashedRefreshToken;
+    await this.usersService.updateUser(user);
+
+    return refreshToken;
   }
 }

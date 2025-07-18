@@ -567,6 +567,7 @@ __metadata:
     express: "npm:^5.1.0"
     glob: "npm:^11.0.3"
     joi: "npm:^17.13.3"
+    jwt: "npm:^0.2.0"
     nestjs: "npm:^0.0.1"
     nestjs-proto-gen-ts: "npm:^1.0.21"
     passport-jwt: "npm:^4.0.1"
@@ -2361,6 +2362,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jwt@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "jwt@npm:0.2.0"
+  dependencies:
+    node-base64: "npm:0.0.1"
+  checksum: 10c0/19ea6dab1e99f26c33e60b47b0e0ab9249059d47eb0c7ced54ed4454e3063de108be6a286828782a03b7f3e5b43c88e58a4cb0aced40c066bd50c7b8357fd3a5
+  languageName: node
+  linkType: hard
+
 "keyv@npm:^4.5.4":
   version: 4.5.4
   resolution: "keyv@npm:4.5.4"
@@ -2790,6 +2800,13 @@ __metadata:
   dependencies:
     node-gyp: "npm:latest"
   checksum: 10c0/e4de0b4e70998fed7ef41933946f60565fc3a17cb83b7d626a0c0bb1f734cf7852e0e596f12681e7c8ed424163ee3cdbb4f0abaa9cc269d03f48834c263ba162
+  languageName: node
+  linkType: hard
+
+"node-base64@npm:0.0.1":
+  version: 0.0.1
+  resolution: "node-base64@npm:0.0.1"
+  checksum: 10c0/68bc1f6a33b5a4b9feb9bdd82cf66a0fe0e035fe9ebfe7874dc2d9cfb9a00a436b2081fc3b39dbad4c1648c335b9b0b23807c6a0aa6598ec912b7b5dbb5c5690
   languageName: node
   linkType: hard
 

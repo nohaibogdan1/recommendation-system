@@ -29,6 +29,7 @@
     "express": "^5.1.0",
     "glob": "^11.0.3",
     "joi": "^17.13.3",
+    "jwt": "^0.2.0",
     "nestjs": "^0.0.1",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",

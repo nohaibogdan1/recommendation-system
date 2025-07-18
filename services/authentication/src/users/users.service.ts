@@ -17,7 +17,8 @@ export default class UsersService {
     return this.userRepository.getUserByEmail(email);
   }
 
-  async confirmEmail(user: User) {
+  async updateUser(user: User) {
     return this.userRepository.updateUser(user);
   }
+
 }

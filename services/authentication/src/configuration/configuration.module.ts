@@ -12,7 +12,11 @@ import { ConfigModule } from "@nestjs/config";
         POSTGRES_PASSWORD: joi.string().required(),
         POSTGRES_PORT: joi.number().required(),
         POSTGRES_DB: joi.string().required(),
-        DB_SYNC: joi.boolean()
+        DB_SYNC: joi.boolean(),
+        JWT_SECRET: joi.string().required(),
+        JWT_EXPIRATION: joi.number().required(),
+        REFRESH_TOKEN_SECRET: joi.string().required(),
+        REFRESH_TOKEN_EXPIRATION: joi.number().required()
       }),
     }),
   ],

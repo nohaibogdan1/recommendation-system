@@ -9,6 +9,8 @@ import RmqSetupService from "./RmqSetupService";
 import UsersModule from "../users/users.module";
 import ConnectionStoreModule from "../database/ConnectionStoreModule";
 import EvtRepository from "./evt.repository";
+import RefreshTokenModule from "./refreshToken/refreshToken.module";
+import JsonWebTokenModule from "./jsonWebToken/jsonWebToken.module";
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import EvtRepository from "./evt.repository";
     ]),
     UsersModule,
     ConnectionStoreModule,
+    RefreshTokenModule,
+    JsonWebTokenModule
   ],
   providers: [AuthenticationService, RmqSetupService, EvtRepository],
   controllers: [AuthenticationController],

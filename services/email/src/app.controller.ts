@@ -31,6 +31,8 @@ export default class AppController {
 
       if (emailType === emailTypes.ACCOUNT_CONFIRMATION) {
         subject = "Email confirmation";
+      } else if (emailType === emailTypes.ACCOUNT_REGISTRATION) {
+        subject = "Registration .. thank you"
       }
 
       const html = await this.templateService.createHtml(data.payload);
