@@ -9,7 +9,7 @@ import RmqSetupService from "./RmqSetupService";
 import UsersModule from "../users/users.module";
 import ConnectionStoreModule from "../database/ConnectionStoreModule";
 import EvtRepository from "./evt.repository";
-import RefreshToken from "./refreshToken.entity";
+import RefreshToken from "./deadRefreshToken.entity";
 import JwtJwtModule from "./jwt/jwtJwt/jwtJwt.module";
 import JwtRefreshTokenModule from "./jwt/jwtRefreshToken/jwtRefreshToken.module";
 

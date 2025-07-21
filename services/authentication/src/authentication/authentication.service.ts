@@ -25,10 +25,12 @@ import RedoEmailConfirmationDto from "./dtos/redoEmailConfirmation.dto";
 import GenerateJwtDto from "./dtos/generateJwt.dto";
 import { JwtPayload, RefreshTokenPayload } from "./types";
 import { InjectRepository } from "@nestjs/typeorm";
-import RefreshToken from "./refreshToken.entity";
+import DeadRefreshToken from "./deadRefreshToken.entity";
 import JwtRefreshTokenService from "./jwt/jwtRefreshToken/jwtRefreshToken.service";
 import JwtJwtService from "./jwt/jwtJwt/jwtJwt.service";
 import ValidateJwtDto from "./dtos/validateJwt.dto";
+import LogoutDto from "./dtos/logout.dto";
+import User from "../users/user.entity";
 
 const randomBytes = promisify(crypto.randomBytes);
 
@@ -42,8 +44,8 @@ export default class AuthenticationService {
     private readonly connectionStore: AsyncLocalStorage<{
       queryRunner: QueryRunner;
     }>,
-    @InjectRepository(RefreshToken)
-    private readonly refreshTokenRepository: Repository<RefreshToken>,
+    @InjectRepository(DeadRefreshToken)
+    private readonly deadRefreshTokenRepository: Repository<DeadRefreshToken>,
     private readonly jwtRefreshTokenService: JwtRefreshTokenService,
     private readonly jwtJwtService: JwtJwtService
   ) {}
@@ -82,10 +84,12 @@ export default class AuthenticationService {
         user,
       });
 
-      queryRunner.commitTransaction();
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
     } catch (e) {
       console.error(e);
-      queryRunner.rollbackTransaction();
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
       throw new InternalServerErrorException();
     }
 
@@ -124,13 +128,13 @@ export default class AuthenticationService {
       await this.evtRepository.create({ token: hashedToken, user });
 
       await queryRunner.commitTransaction();
+      await queryRunner.release();
     } catch (e) {
       console.error(e);
       await queryRunner.rollbackTransaction();
+      await queryRunner.release();
       throw new InternalServerErrorException();
     }
-
-    queryRunner.release();
 
     const sendEmailPayload: SendEmailPayload = {
       userId: user.id,
@@ -185,7 +189,23 @@ export default class AuthenticationService {
     } catch (e) {
       await queryRunner.rollbackTransaction();
     }
-    queryRunner.release();
+    await queryRunner.release();
+  }
+
+  private async generateJwtAndRefreshToken(user: User) {
+    const refreshTokenPayload: RefreshTokenPayload = {
+      userId: user.id,
+    };
+
+    const refreshToken =
+      await this.jwtRefreshTokenService.signAsync(refreshTokenPayload);
+
+    const jwtPayload: JwtPayload = {
+      userId: user.id,
+    };
+
+    const jwt = await this.jwtJwtService.signAsync(jwtPayload);
+    return { jwt, refreshToken };
   }
 
   async login({ email, password }: LoginDto) {
@@ -199,22 +219,7 @@ export default class AuthenticationService {
       throw new ForbiddenException();
     }
 
-    const refreshTokenPayload: RefreshTokenPayload = {
-      userId: user.id,
-    };
-
-    const refreshToken =
-      await this.jwtRefreshTokenService.signAsync(refreshTokenPayload);
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-
-    const refreshTokenEntity = this.refreshTokenRepository.create({
-      token: hashedRefreshToken,
-      user,
-    });
-
-    await this.refreshTokenRepository.save(refreshTokenEntity);
-
-    return refreshToken;
+    return await this.generateJwtAndRefreshToken(user);
   }
 
   async generateJwt({ refreshToken }: GenerateJwtDto) {
@@ -223,6 +228,12 @@ export default class AuthenticationService {
       const payload: RefreshTokenPayload =
         await this.jwtRefreshTokenService.verifyAsync(refreshToken);
       userId = payload.userId;
+      const found = await this.deadRefreshTokenRepository.findOneBy({
+        token: refreshToken,
+      });
+      if (found) {
+        throw new UnauthorizedException();
+      }
     } catch (e) {
       throw new UnauthorizedException();
     }
@@ -232,18 +243,28 @@ export default class AuthenticationService {
       throw new UnauthorizedException();
     }
 
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-    const refreshTokenEntity = await this.refreshTokenRepository.findBy({
-      token: hashedRefreshToken,
-    });
-    if (!refreshTokenEntity) {
-      throw new UnauthorizedException();
-    }
+    const queryRunner = this.getQueryRunner();
 
-    const jwtPayload: JwtPayload = {
-      userId,
-    };
-    return await this.jwtJwtService.signAsync(jwtPayload);
+    try {
+      await queryRunner.startTransaction();
+
+      const token = this.deadRefreshTokenRepository.create({
+        token: refreshToken,
+      });
+
+      await this.deadRefreshTokenRepository.save(token);
+      const tokens = await this.generateJwtAndRefreshToken(user);
+
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+
+      return tokens;
+    } catch (e) {
+      console.error(e);
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+      throw new InternalServerErrorException();
+    }
   }
 
   async validateJwt({ jwt }: ValidateJwtDto) {
@@ -258,5 +279,12 @@ export default class AuthenticationService {
       console.error(e);
       throw new UnauthorizedException();
     }
+  }
+
+  async logout({ refreshToken }: LogoutDto) {
+    const token = this.deadRefreshTokenRepository.create({
+      token: refreshToken,
+    });
+    await this.deadRefreshTokenRepository.save(token);
   }
 }

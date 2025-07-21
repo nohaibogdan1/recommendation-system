@@ -6,6 +6,7 @@ import LoginDto from "./login.dto";
 import RedoEmailConfirmationDto from "./dtos/redoEmailConfirmation.dto";
 import GenerateJwtDto from "./dtos/generateJwt.dto";
 import ValidateJwtDto from "./dtos/validateJwt.dto";
+import LogoutDto from "./dtos/logout.dto";
 
 @Controller("authentication")
 export default class AuthenticationController {
@@ -39,5 +40,10 @@ export default class AuthenticationController {
   @Post("validate-jwt")
   async validateJwt(@Body() payload: ValidateJwtDto) {
     return this.authenticationService.validateJwt(payload);
+  }
+
+  @Post("logout")
+  async logout(@Body() payload: LogoutDto) {
+    return this.authenticationService.logout(payload);
   }
 }

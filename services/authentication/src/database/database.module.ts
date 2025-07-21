@@ -15,7 +15,7 @@ import path from "node:path";
         port: configService.get("POSTGRES_PORT"),
         entities: [path.join(__dirname, "..", "**/*.entity.{ts,js}")],
         synchronize: configService.get("DB_SYNC") || false,
-        logging: true
+        logging: false
       }),
     }),
   ],

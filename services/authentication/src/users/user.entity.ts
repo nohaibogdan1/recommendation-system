@@ -3,10 +3,8 @@ import {
   Column,
   PrimaryGeneratedColumn,
   OneToOne,
-  OneToMany,
 } from "typeorm";
 import EmailVerificationToken from "../authentication/emailVerificationToken.entity";
-import RefreshToken from "../authentication/refreshToken.entity";
 
 @Entity("users")
 export default class User {
@@ -33,7 +31,4 @@ export default class User {
     (emailVerificationToken) => emailVerificationToken.user
   )
   emailVerificationToken: EmailVerificationToken;
-
-  @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
-  refreshTokens: RefreshToken[];
 }
