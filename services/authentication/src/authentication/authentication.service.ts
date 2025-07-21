@@ -287,4 +287,17 @@ export default class AuthenticationService {
     });
     await this.deadRefreshTokenRepository.save(token);
   }
+
+  async cleanDeadRefreshTokens() {
+    const deadRefreshTokens = await this.deadRefreshTokenRepository.find();
+    const toBeRemoved: DeadRefreshToken[] = [];
+    for (const token of deadRefreshTokens) {
+      try {
+        await this.jwtRefreshTokenService.verifyAsync(token.token);
+      } catch {
+        toBeRemoved.push(token);
+      }
+    }
+    await this.deadRefreshTokenRepository.remove(toBeRemoved);
+  }
 }

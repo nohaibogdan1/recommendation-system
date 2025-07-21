@@ -34,6 +34,7 @@ import JwtRefreshTokenModule from "./jwt/jwtRefreshToken/jwtRefreshToken.module"
     JwtRefreshTokenModule
   ],
   providers: [AuthenticationService, RmqSetupService, EvtRepository],
+  exports: [AuthenticationService],
   controllers: [AuthenticationController],
 })
 export default class AuthenticationModule {}
